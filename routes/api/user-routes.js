@@ -1,9 +1,9 @@
 const router = require('express').Router();
-const { User, Post, Vote } = require('../../models');
+const { User, Post, Vote, Comment } = require('../../models');
 
 // GET /api/users
 router.get('/', (req, res) => {
-    // Access our User model and run .findAll() method
+    // Access our User model and run .findAll() method )
     User.findAll({
         attributes: { exclude: ['password'] }
     })
@@ -17,10 +17,19 @@ router.get('/', (req, res) => {
 // GET /api/users/1
 router.get('/:id', (req, res) => {
     User.findOne({
+        attributes: { exclude: ['password'] },
         include: [
             {
                 model: Post,
                 attributes: ['id', 'title', 'post_url', 'created_at']
+            },
+            {
+                model: Comment,
+                attributes: ['id', 'comment_text', 'created_at'],
+                include: {
+                    model: Post,
+                    attributes: ['title']
+                }
             },
             {
                 model: Post,
@@ -28,7 +37,10 @@ router.get('/:id', (req, res) => {
                 through: Vote,
                 as: 'voted_posts'
             }
-        ]
+        ],
+        where: {
+            id: req.params.id
+        }
     })
         .then(dbUserData => {
             if (!dbUserData) {
@@ -40,12 +52,12 @@ router.get('/:id', (req, res) => {
         .catch(err => {
             console.log(err);
             res.status(500).json(err);
-        });
+        })
 });
 
 // POST /api/users
 router.post('/', (req, res) => {
-    // expects {username: 'Lernantino', email: 'lernantino@gmail.com', password: 'password1234'}
+    // expecs {username: 'Lerantino', email: 'lerantino@gmail.com', password: 'password1234'}
     User.create({
         username: req.body.username,
         email: req.body.email,
@@ -53,32 +65,31 @@ router.post('/', (req, res) => {
     })
         .then(dbUserData => res.json(dbUserData))
         .catch(err => {
-            console.log(err);
+            console.log(err)
             res.status(500).json(err);
-        });
+        })
 });
 
-// POST /login
 router.post('/login', (req, res) => {
-    // expects {username: 'Lernantino', email: 'lernantino@gmail.com', password: 'password1234'}
+    // expects {email: 'lernantino@gmail.com', password: 'password1234'}
     User.findOne({
         where: {
             email: req.body.email
         }
-    })
-        .then(dbUserData => {
-            if (!dbUserData) {
-                res.status(400).json({ message: 'No user with that email address!' });
-                return;
-            }
-            // Verify User
-            const validPassword = dbUserData.checkPassword(req.body.password);
-            if (!validPassword) {
-                res.status(400).json({ message: 'Incorrect password!' });
-                return;
-            }
-            res.json({ user: dbUserData, message: 'You are now logged in!' });
-        });
+    }).then(dbUserData => {
+        if (!dbUserData) {
+            res.status(400).json({ message: 'No user with that email address!' });
+            return;
+        }
+
+        const validPassword = dbUserData.checkPassword(req.body.password);
+        if (!validPassword) {
+            res.status(400).json({ message: 'Incorrect password!' });
+            return;
+        }
+
+        res.json({ user: dbUserData, message: 'You are now logged in!' });
+    });
 });
 
 // PUT /api/users/1
