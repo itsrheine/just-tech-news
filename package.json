@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
@@ -19,7 +20,9 @@
     "mysql2": "^2.2.5",
     "sequelize": "^5.22.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "jest": "^26.6.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/itsrheine/just-tech-news.git"
